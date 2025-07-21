@@ -72,21 +72,25 @@ export class Replacer {
 }
 
 export function insertImageWithMap(el: HTMLElement, image: string, map: string, encodedDiagram: string) {
+    // 清空元素el的内容，以为后续添加新的图像元素做准备
     el.empty();
 
+    // 创建一个新的图像元素
     const img = document.createElement("img");
     if(image.startsWith("http")) {
         img.src = image;
     }else {
         img.src = "data:image/png;base64," + image;
     }
+    // 设置图像元素的useMap属性，使其关联到特定的图像映射
     img.useMap = "#" + encodedDiagram;
 
+    // 如果map中包含映射信息，则更新el的HTML内容，并设置第一个子元素的name属性
     if (map.contains("map")) {
         el.innerHTML = map;
         el.children[0].setAttr("name", encodedDiagram);
     }
-
+    // 将创建的图像元素添加到el中
     el.appendChild(img);
 }
 
@@ -102,16 +106,19 @@ export function insertAsciiImage(el: HTMLElement, image: string) {
 
 export function insertSvgImage(el: HTMLElement, image: string) {
     el.empty();
-
     const parser = new DOMParser();
+    // 使用 parser 解析 SVG 图像字符串
     const svg = parser.parseFromString(image, "image/svg+xml");
 
+    // 获取SVG中所有的链接元素（实际获取到的是空 ?? 什么场景会用到）
     const links = svg.getElementsByTagName("a");
+    // 遍历每个链接元素
     for (let i = 0; i < links.length; i++) {
         const link = links[i];
+        // 为当前链接元素添加内部链接样式类
         link.addClass("internal-link");
     }
-
+    // 将SVG元素的HTML代码插入到指定元素的末尾
     el.insertAdjacentHTML('beforeend', svg.documentElement.outerHTML);
 
 

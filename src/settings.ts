@@ -7,24 +7,28 @@ export interface PlantUMLSettings {
     debounce: number;
     localJar: string;
     javaPath: string;
+    plantuml_js: string;
     dotPath: string;
     defaultProcessor: string;
     cache: number;
     exportPath: string;
 }
 
+// 定义设置属性
 export const DEFAULT_SETTINGS: PlantUMLSettings = {
     server_url: 'https://www.plantuml.com/plantuml',
     header: '',
     debounce: 3,
     localJar: '',
     javaPath: 'java',
+    plantuml_js: 'java',
     dotPath: 'dot',
     defaultProcessor: "png",
     cache: 60,
     exportPath: ''
 }
 
+// 构建设置面板
 export class PlantUMLSettingsTab extends PluginSettingTab {
     plugin: PlantumlPlugin;
 
@@ -38,6 +42,7 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
 
         containerEl.empty();
 
+        // 1. Server URL
         new Setting(containerEl).setName("Server URL")
             .setDesc("PlantUML Server URL")
             .addText(text => text.setPlaceholder(DEFAULT_SETTINGS.server_url)
@@ -50,7 +55,6 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
             );
 
         if(Platform.isDesktopApp) {
-
             const jarDesc = new DocumentFragment();
             jarDesc.createDiv().innerHTML = "Path to local JAR<br>Supports:" +
                 "<ul>" +
@@ -58,7 +62,7 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
                 "<li>Path relative to vault</li>" +
                 "<li>Path relative to users home directory <code>~/</code></li>" +
                 "</ul>";
-
+            // 2. Local JAR
             new Setting(containerEl)
                 .setName("Local JAR")
                 .setDesc(jarDesc)
@@ -70,7 +74,7 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
                         }
                     )
                 );
-
+            // 3. Java path
             new Setting(containerEl)
                 .setName("Java path")
                 .setDesc("Path to Java executable")
@@ -82,7 +86,20 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
                         }
                     )
                 );
+            // plantuml-js 路径
+            new Setting(containerEl)
+                .setName("Plantuml-js path")
+                .setDesc("Path to Plantuml-js executable")
+                .addText(text => text.setPlaceholder(DEFAULT_SETTINGS.javaPath)
+                    .setValue(this.plugin.settings.javaPath)
+                    .onChange(async (value) => {
+                            this.plugin.settings.javaPath = value;
+                            await this.plugin.saveSettings();
+                        }
+                    )
+                );
 
+            // graphviz 路径
             new Setting(containerEl)
                 .setName("Dot path")
                 .setDesc("Path to dot executable")
@@ -95,6 +112,7 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
                     )
                 );
 
+            // 导出图片路径
             new Setting(containerEl)
                 .setName("Diagram export path")
                 .setDesc("Path where exported diagrams will be saved relative to the vault root. Leave blank to save along side the note.")
@@ -108,6 +126,7 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
                 );
         }
 
+        //
         new Setting(containerEl)
             .setName("Default processor for includes")
             .setDesc("Any .pu/.puml files linked will use this processor")

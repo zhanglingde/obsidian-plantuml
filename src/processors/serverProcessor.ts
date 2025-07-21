@@ -18,11 +18,11 @@ export class ServerProcessor implements Processor {
         if (url.length == 0) {
             url = DEFAULT_SETTINGS.server_url;
         }
-
+        // debugger
         const imageUrlBase = url + "/svg/";
         const encodedDiagram = plantuml.encode(source);
-
         request({url: imageUrlBase + encodedDiagram, method: 'GET'}).then((value: string) => {
+            // value 为 <svg> 标签 ，包含元素的坐标，颜色等信息
             insertSvgImage(el, value);
         }).catch((error: Error) => {
             if (error)
@@ -36,14 +36,16 @@ export class ServerProcessor implements Processor {
         if (url.length == 0) {
             url = DEFAULT_SETTINGS.server_url;
         }
-
+        // https://www.plantuml.com/plantuml/png/
         const imageUrlBase = url + "/png/";
-
+        // base64 编码
         const encodedDiagram = plantuml.encode(source);
         const image = imageUrlBase + encodedDiagram;
 
         //get image map data to support clicking links in diagrams
+        // https://www.plantuml.com/plantuml/map/
         const mapUrlBase = url + "/map/";
+        // <img> 标签的 map 属性
         const map = await request({url: mapUrlBase + encodedDiagram, method: "GET"});
 
         insertImageWithMap(el, image, map, encodedDiagram);
@@ -56,7 +58,7 @@ export class ServerProcessor implements Processor {
         }
         const asciiUrlBase = url + "/txt/";
         const encodedDiagram = plantuml.encode(source);
-
+        debugger
         const result = await request({url: asciiUrlBase + encodedDiagram});
 
         if (result.startsWith("�PNG")) {

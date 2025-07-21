@@ -3,12 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import PlantumlPlugin from "../main";
 import { Processor } from "./processor";
 
+// 防抖处理器，用户在输入框连续输入时，不希望每次按键都触发请求
 export class DebouncedProcessors implements Processor {
 
     SECONDS_TO_MS_FACTOR = 1000;
 
     debounceMap = new Map<string, Debouncer<[string, HTMLElement, MarkdownPostProcessorContext], unknown>>();
-
+    // 时间间隔
     debounceTime: number;
     plugin: PlantumlPlugin;
 
