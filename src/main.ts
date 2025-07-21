@@ -12,6 +12,7 @@ import {Replacer} from "./functions";
 import {PumlView, VIEW_TYPE} from "./PumlView";
 import localforage from "localforage";
 import {PumlEmbed} from "./embed";
+import { loadPlantUML } from './loadPlantUML';
 
 // 声明模块
 declare module "obsidian" {
@@ -76,6 +77,18 @@ export default class PlantumlPlugin extends Plugin {
         this.addSettingTab(new PlantUMLSettingsTab(this));
         // ??? 什么作用
         this.replacer = new Replacer(this);
+        loadPlantUML()
+        async function initPlantUML() {
+            await loadPlantUML();
+
+            // 确保 plantuml 已加载
+            if (window.plantuml) {
+                await window.plantuml.initialize('/app/plantuml-wasm');
+                console.log('PlantUML 初始化完成');
+            } else {
+                throw new Error('PlantUML 未正确挂载');
+            }
+        }
 
         this.serverProcessor = new ServerProcessor(this);
         if (Platform.isDesktopApp) {

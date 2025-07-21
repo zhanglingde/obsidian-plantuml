@@ -1,5 +1,6 @@
 import { Notice, Platform, PluginSettingTab, Setting } from "obsidian";
 import PlantumlPlugin from "./main";
+import * as plantuml from "plantuml-encoder";
 
 export interface PlantUMLSettings {
     server_url: string,
@@ -7,7 +8,7 @@ export interface PlantUMLSettings {
     debounce: number;
     localJar: string;
     javaPath: string;
-    plantuml_js: string;
+    plantumlJsPath: string;
     dotPath: string;
     defaultProcessor: string;
     cache: number;
@@ -21,7 +22,7 @@ export const DEFAULT_SETTINGS: PlantUMLSettings = {
     debounce: 3,
     localJar: '',
     javaPath: 'java',
-    plantuml_js: 'java',
+    plantumlJsPath: 'D:\\codes\\obsidian\\plantuml.js-main\\examples\\01-basic\\plantuml-wasm',
     dotPath: 'dot',
     defaultProcessor: "png",
     cache: 60,
@@ -90,10 +91,10 @@ export class PlantUMLSettingsTab extends PluginSettingTab {
             new Setting(containerEl)
                 .setName("Plantuml-js path")
                 .setDesc("Path to Plantuml-js executable")
-                .addText(text => text.setPlaceholder(DEFAULT_SETTINGS.javaPath)
-                    .setValue(this.plugin.settings.javaPath)
+                .addText(text => text.setPlaceholder(DEFAULT_SETTINGS.plantumlJsPath)
+                    .setValue(this.plugin.settings.plantumlJsPath)
                     .onChange(async (value) => {
-                            this.plugin.settings.javaPath = value;
+                            this.plugin.settings.plantumlJsPath = value;
                             await this.plugin.saveSettings();
                         }
                     )

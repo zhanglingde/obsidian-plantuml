@@ -18,7 +18,6 @@ export class ServerProcessor implements Processor {
         if (url.length == 0) {
             url = DEFAULT_SETTINGS.server_url;
         }
-        // debugger
         const imageUrlBase = url + "/svg/";
         const encodedDiagram = plantuml.encode(source);
         request({url: imageUrlBase + encodedDiagram, method: 'GET'}).then((value: string) => {
@@ -58,7 +57,6 @@ export class ServerProcessor implements Processor {
         }
         const asciiUrlBase = url + "/txt/";
         const encodedDiagram = plantuml.encode(source);
-        debugger
         const result = await request({url: asciiUrlBase + encodedDiagram});
 
         if (result.startsWith("�PNG")) {

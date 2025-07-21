@@ -1,10 +1,21 @@
 import PlantumlPlugin from "../main";
+import {DEFAULT_SETTINGS, PlantUMLSettings, PlantUMLSettingsTab} from "../settings";
 import {Processor} from "./processor";
 import {MarkdownPostProcessorContext, moment} from "obsidian";
 import * as plantuml from "plantuml-encoder";
 import {insertAsciiImage, insertImageWithMap, insertSvgImage} from "../functions";
 import {OutputType} from "../const";
 import * as localforage from "localforage";
+import { renderPlantUML } from '../plantumlRenderer';
+const script = document.createElement('script');
+script.src = 'https://cjrtnc.leaningtech.com/2.3/loader.js';
+
+// 可选：设置加载完成后的回调
+script.onload = () => {
+    console.log('loader.js 加载完成');
+};
+document.head.appendChild(script);
+
 
 export class LocalProcessors implements Processor {
 
@@ -12,6 +23,7 @@ export class LocalProcessors implements Processor {
 
     constructor(plugin: PlantumlPlugin) {
         this.plugin = plugin;
+
     }
 
     ascii = async(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
@@ -30,8 +42,17 @@ export class LocalProcessors implements Processor {
     }
 
     png = async(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
+        // source 为代码块内容
         const encodedDiagram = plantuml.encode(source);
-        const item: string = await localforage.getItem('png-' + encodedDiagram);
+        // 阻塞获取图片，异步调用本地 plantuml.jar 处理生成 base64 图片
+        let item: string = await localforage.getItem('png-' + encodedDiagram);
+        if (DEFAULT_SETTINGS.plantumlJsPath.length > 0) {
+            debugger
+            item = await renderPlantUML( source)
+        }else{
+            item = await localforage.getItem('png-' + encodedDiagram);
+        }
+        console.log("item",item)
         if(item) {
             const map: string = await localforage.getItem('map-' + encodedDiagram);
             insertImageWithMap(el, item , map, encodedDiagram);
@@ -64,9 +85,12 @@ export class LocalProcessors implements Processor {
         insertSvgImage(el, image);
     }
 
+    // 当用户使用 PlantUML 插件渲染 PNG 图像时，且该图像需要附带映射信息（image map）时触发
     async generateLocalMap(source: string, path: string): Promise<string> {
         const {exec} = require('child_process');
+        // 调用 plantuml.jar ，使用 -pipemap 参数，生成包含映射信息的 PNG 图像
         const args = this.resolveLocalJarCmd().concat(['-pipemap']);
+        // 通过 child_process.exec 执行命令
         const child = exec(args.join(" "), {encoding: 'binary', cwd: path});
 
         let stdout = "";
@@ -98,9 +122,11 @@ export class LocalProcessors implements Processor {
     }
 
     async generateLocalImage(source: string, type: OutputType, path: string): Promise<string> {
+        // child_process 是 Node.js 提供的一个核心模块，用于创建和控制子进程(subprocess)
+        // 在程序中打开一个终端，执行一些命令
         const {ChildProcess, exec} = require('child_process');
         const args = this.resolveLocalJarCmd().concat(['-t' + type, '-pipe']);
-
+        console.log(args)
         let child: typeof ChildProcess;
         if (type === OutputType.PNG) {
             child = exec(args.join(" "), {encoding: 'binary', cwd: path});
@@ -161,6 +187,8 @@ export class LocalProcessors implements Processor {
     }
 
     /**
+     * 使用类似 Unix 风格的路径格式，返回 java -jar 运行命令
+     *
      * To support local jar settings with unix-like style, and search local jar file
      * from current vault path.
      */
@@ -171,7 +199,7 @@ export class LocalProcessors implements Processor {
         let jarFullPath: string;
         const path = this.plugin.replacer.getFullPath("");
 
-        if (jarFromSettings[0] === '~') {
+        if (jarFromSettings[0] === '~') {   // 相对路径
             // As a workaround, I'm not sure what would isAbsolute() return with unix-like path
             jarFullPath = userInfo().homedir + jarFromSettings.slice(1);
         }

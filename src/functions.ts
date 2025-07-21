@@ -79,7 +79,7 @@ export function insertImageWithMap(el: HTMLElement, image: string, map: string, 
     const img = document.createElement("img");
     if(image.startsWith("http")) {
         img.src = image;
-    }else {
+    }else {  // 本地: data:image/png;base64, base64编码的图像数据
         img.src = "data:image/png;base64," + image;
     }
     // 设置图像元素的useMap属性，使其关联到特定的图像映射
